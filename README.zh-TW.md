@@ -1,25 +1,33 @@
-# QuietRescue 1.1 — Windows 免安裝 EXE
+# QuietRescue 1.2.0 — Windows x64 源碼預覽版
 
-[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)
+這是本機救援工具的審查版本，不代表完整規格或實體硬碟救援已通過驗收。源碼可在 Windows x64 建置內含 Python/Tk/Pillow 的 EXE；本版本尚未重新執行 EXE 的啟動與介面驗收。
 
-下載 Windows-x64 ZIP，完整解壓到本機資料夾，雙擊 **QuietRescue.exe** 並允許正常的 Windows UAC。使用者不需要安裝 Python、pip 或 Tk。開啟程式不會自動掃描硬碟。
-<img width="1037" height="780" alt="螢幕擷取畫面 2026-10-21 222915" src="https://github.com/user-attachments/assets/5628df38-a787-4098-b120-52264aba9aa4" />
-<img width="1057" height="769" alt="螢幕擷取畫面 2026-10-21 223012" src="https://github.com/user-attachments/assets/083a8c25-3811-4a12-baf1-9b1131460eb1" />
-<img width="752" height="474" alt="螢幕擷取畫面 2026-10-21 223702" src="https://github.com/user-attachments/assets/0f2e4e68-d070-4e06-a4cb-11d78741d0c3" />
-<img width="497" height="54" alt="image" src="https://github.com/user-attachments/assets/a60cd780-4c05-48fd-a3af-6e456e7b1de7" />
+## 本版安全改動
 
+- 實體磁碟任務先建立草案，不會立即讀盤。獨立審核步驟會顯示來源／目的身份、位元組範圍、匯入避讓範圍、不重試政策及保留空間；批准紀錄綁定完整計劃 SHA-256。計劃遭修改、設備身份改變或跳過地圖新增範圍，都會封鎖讀取。
+- 配置了既有地圖的任務會分開匯入策略避讓與歷史已嘗試範圍，並與指定的舊控制器共用互斥鎖及依序號建立的磁碟鎖。地圖損壞、不完整或更新時保持停讀；歷史請求位置不會再試。
+- 每批與整份計劃累計位元組上限分開控制；接續批次保存進度與斷點。只有 journal 收到記錄及目的副本雜湊相符，才能把中斷請求復核為已保存；不完整或不匹配的請求保留為未確認。
+- 啟動失敗、UAC／權限、來源斷線、CRC、超時、目的地寫入／flush 錯誤分別分類。超時、斷線和未知請求不當作精確壞道，也不自動重試。
+- 避讓報表會區分觀察到的讀取錯誤、未確認請求、策略保護與歷史已嘗試範圍；這些都不是精確物理壞道診斷。
+- **實體 reader 尚未通過可丟棄設備與 I/O 停止驗收，故 1.2 的實體讀取／批准功能保持鎖定。**目前只可檢查來源碼、測試合成映像及檢視計劃；不得用此版本讀取故障來源盤。
+- 驗證和媒體還原只處理目的地的已保存副本，不要求來源盤在線。匯出及還原輸出會檢查，避免寫回來源實體硬碟。
+- 停止狀態會區分「已提出」與「已完成」。目前副本校驗不可中斷，介面會如實說明。磁碟維護頁只輸出唯讀預覽；沒有 CHKDSK `/f`、壞扇區寫入修復、格式化或分區表寫回功能。
 
-在還原頁點「開啟示範（不讀硬碟）」，即可預覽內附人工照片與AVI影片。支援的編碼可內嵌播放、暫停與重播；不支援的格式可交給系統播放器。編碼支援取決於Windows，示範檔不是使用者救回的資料。
+## 操作流程與限制
 
-功能包含有限範圍只讀鏡像、REQUESTED/GOOD持久映射、續讀跳過未確認請求、SHA-256驗證、JPEG/PNG提取與預覽、內嵌影片預覽、已驗證映像匯出及保守避讓CSV。首次新增讀取異常即停，保留超過5GB空間。不自動寫分區表或修復物理壞道。CHKDSK /f是另行確認的來源寫入功能，須有完整已驗證物理硬碟備份。
+1. 執行 `Start-QuietRescue.cmd`，刷新實體磁碟清單，並選擇位於另一顆實體硬碟的健康目的地。
+2. 設定 byte 範圍、每批 GB 上限和全計劃累計上限。已實作有界接續邏輯，但因實體 reader 尚未驗收，物理讀取仍鎖定。
+3. 保留整個任務資料夾，其中包含計劃、審核、映射日誌、分段資料與校驗報告。
+4. 內建抽取只支援從已驗證連續資料中尋找可解碼 JPEG/PNG；不能重建原路徑／原檔名，也不能保證碎片化檔案完整。PhotoRec 7.2 為手動安裝的選配工具；其輸出不代表完整檔案已驗證。
+5. 避讓分區輸出只是草案。候選段標示 `NOT_PROVEN_HEALTHY`；映射中的保護範圍不是實測物理壞道邊界。
 
-EXE目前未簽署，Windows可能顯示未知發行者或信譽提示；UAC的python請求用於硬碟存取。本工具仍是資料搶救原型，配合AI使用效率更高，目前不能修復物理盤體。PhotoRec維持選配，請從官方下載後放到EXE旁的vendor/testdisk-7.2/photorec_win.exe。
+目前 19 個源碼測試只使用合成檔案鏡像，涵蓋累計／分批上限、斷點雜湊復核、錯誤分類、跳過地圖變更、no-retry 與唯讀預覽；未涵蓋實體磁碟、USB I/O 卡死取消、斷電、完整 NTFS/MFT、完整影片／DVD／RAW 恢復或破壞性維護。詳見[實作與驗收狀態](docs/IMPLEMENTATION-STATUS.zh-TW.md)。
+
+舊版 1.1.0 曾有獨立 EXE 驗收紀錄，但不代表目前 1.2.0 已驗收；請見[歷史 EXE 驗收](docs/EXE-VALIDATION.md)。目前 1.2.0 尚未重建 EXE，實體來源保持鎖定。任何版本都不能修復物理故障，也不能保證恢復已覆寫或仍不可讀的資料。
 
 - [使用說明](docs/USAGE.zh-TW.md)
-- [功能比較](docs/COMPARISON.zh-TW.md)
-- [EXE validation / EXE驗證 / EXE検証](docs/EXE-VALIDATION.md)
-- [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+- [實作與驗收狀態](docs/IMPLEMENTATION-STATUS.zh-TW.md)
+- [建置說明](docs/BUILD.md)
+- [MIT 授權](LICENSE) · [第三方聲明](THIRD_PARTY_NOTICES.md)
 
-UI: 繁體中文 / Traditional Chinese. Windows x64.
-
-[Build from source / 從原始碼建置 / ソースからビルド](docs/BUILD.md)
+介面語言：繁體中文。Windows x64。
