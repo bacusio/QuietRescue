@@ -1,0 +1,20 @@
+# Usage
+
+1. Extract the Windows ZIP and double-click QuietRescue.exe; accept UAC. No Python installation is needed. Optional PhotoRec installation is in vendor/README.md. Imaging and built-in photo recovery work without PhotoRec.
+2. Choose **刷新硬盤清單** and identify the source by model, serial and capacity. System/boot disks are excluded. Two drive letters may be on the same physical disk. Choose an existing folder on a different healthy physical disk.
+3. Start/end are physical byte offsets; end is exclusive. Align to the logical sector size, 512 or 4096 bytes. The default start is zero; check the scope before starting. The GB field is a per-start upper limit, not the disk size or a scheduling interval. It defaults to 1 decimal GB; enter 0.75 for a batch below 1 GB.
+4. **建立並開始鏡像** asks for confirmation. Reads use 1 MiB requests and append to 256 MiB segment groups. REQUESTED is flushed before I/O; GOOD follows saved bytes and records SHA-256. First error, an 8-second response timeout or a read over 2 seconds stops the pass. A guard of up to about 1 GiB on each side is recorded. These are conservative exclusions, not measured bad-sector boundaries. OS/firmware retries are outside this policy.
+5. **安全停止** requests a stop after the current operation. Preserve the entire job directory: plan.json, map.jsonl and all chunk files belong together. Reopen plan.json with **開啟任務／續讀** and then **開始續讀**. All REQUESTED ranges, including unknown outcomes, are skipped. Never delete records to force retries. Independent new jobs do not automatically share maps; do not start another tool against the same source.
+6. **驗證全部副本** hashes saved blocks. Verified bytes are not proof of a complete disk: complete=false means gaps remain. **還原照片** extracts decodable JPEG/PNG from continuous verified data (64 MiB candidate buffer); output names are hashes, not recovered original names.
+7. **匯出完整 .img** requires gap-free selected coverage. A selected range is not necessarily the whole disk. **匯出已驗證連續區段** exports separate regions with source offsets; never concatenate across holes. Exports need additional destination space. The imager checks a 5,000,000,000-byte plus 32 MiB reserve. External PhotoRec uses periodic space checks and is not a hard filesystem quota.
+8. Run **影片／更多格式 PhotoRec** on an exported copy. Extract the full official 7.2 package into vendor/testdisk-7.2 first. Save output on a healthy disk, never the failed source. Load output with **載入還原的照片／影片資料夾**. Photos and supported videos preview in-app. The pause button also replays a finished video. Unsupported codecs use the system-player button. Inspect full duration, seek points and audio; a signature or exit code does not prove an intact movie.
+9. **輸出不可分配區域 CSV 草案** exports this job's guard ranges only. It does not create partitions, mark filesystem clusters or include every fault from another tool. No SMART health/lifetime estimate is provided.
+10. **CHKDSK /f** changes the source filesystem and does not repair platter damage. The UI requires a complete freshly verified physical-disk backup, identity/volume checks and serial confirmation. This write path was not exercised on a failing disk for this release. File extraction from a copy remains the recovery workflow; there is no image-to-source restore button.
+
+## Troubleshooting
+
+- Cancelled UAC: no reader starts; launch again when ready. Never bypass Windows security.
+- Unknown disk serial, spanning volume or network destination: unsupported; do not weaken identity checks.
+- Invalid map, hash mismatch or worker exit not confirmed: stop; retain the map, logs and partial files. Do not restart until the outcome is understood.
+- Hardware disconnect or new read anomaly: retain the checkpoint. Reopening the UI alone does not authorize automatic retries.
+- Keep recovery folders outside this repository. Never upload raw images, serial numbers, private photos or complete logs to GitHub issues.

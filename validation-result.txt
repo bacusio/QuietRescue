@@ -1,0 +1,5 @@
+Windows x64 EXE acceptance PASSED.
+8 source tests passed.
+UAC/admin token, frozen worker checkpoint resume, photo equality and native AVI playback verified.
+No physical source disk reads/writes.
+See docs/EXE-VALIDATION.md for evidence and limits.
