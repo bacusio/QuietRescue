@@ -1,4 +1,6 @@
-# Windows EXE acceptance — 2026-10-21
+# Historical Windows EXE acceptance — 2026-10-21
+
+This report and its EXE hash document the earlier validated 1.1.0 artifact. They are **not validation evidence for the current 1.2.0 source**; the 1.2.0 physical reader remains locked and its EXE has not been rebuilt or accepted.
 
 | Check | Observed result |
 |---|---|

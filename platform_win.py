@@ -14,7 +14,12 @@ def powershell(script):
     return json.loads(p.stdout.decode('utf-8-sig'))
 
 def inventory():
-    return powershell("[Console]::OutputEncoding=[Text.UTF8Encoding]::new(); $d=@(Get-Disk | Select-Object Number,FriendlyName,SerialNumber,Size,LogicalSectorSize,IsBoot,IsSystem,BusType); $p=@(Get-Partition | Select-Object DiskNumber,PartitionNumber,DriveLetter,Offset,Size); @{disks=$d;partitions=$p}|ConvertTo-Json -Depth 4 -Compress")
+    data=powershell("[Console]::OutputEncoding=[Text.UTF8Encoding]::new(); $d=@(Get-Disk | Select-Object Number,FriendlyName,SerialNumber,Size,LogicalSectorSize,IsBoot,IsSystem,BusType); $p=@(Get-Partition | Select-Object DiskNumber,PartitionNumber,DriveLetter,Offset,Size); @{disks=$d;partitions=$p}|ConvertTo-Json -Depth 4 -Compress")
+    for key in ('disks','partitions'):
+        value=data.get(key,[])
+        if value is None:data[key]=[]
+        elif isinstance(value,dict):data[key]=[value]
+    return data
 
 K=C.WinDLL('kernel32',use_last_error=True)
 K.CreateFileW.argtypes=[W.LPCWSTR,W.DWORD,W.DWORD,C.c_void_p,W.DWORD,W.DWORD,W.HANDLE];K.CreateFileW.restype=W.HANDLE
@@ -55,3 +60,13 @@ def destination_disk(path):
         if struct.unpack_from('<I',b)[0]!=1:raise ValueError('不支援跨盤目的卷')
         return struct.unpack_from('<I',b,8)[0]
     finally:d.close()
+
+def destination_identity(path):
+    """Resolve a local destination volume to the physical disk identity."""
+    number=destination_disk(path)
+    matches=[x for x in inventory()['disks'] if int(x['Number'])==number]
+    if len(matches)!=1:raise ValueError('無法唯一識別目的實體硬盤')
+    d=matches[0]
+    serial=str(d.get('SerialNumber') or '').strip()
+    if not serial:raise ValueError('目的硬盤序列號缺失，不能建立救援任務')
+    return dict(number=number,serial=serial,size=int(d['Size']))
