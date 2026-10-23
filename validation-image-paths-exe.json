@@ -1,0 +1,17 @@
+{
+  "exe_sha256": "01388f699ba99acf0796575d8b830d6b38da4e95d99ee556c44dc1ff7e0eb9b5",
+  "scope": "D-drive synthetic data; not physical-fault or all-controls acceptance",
+  "status": "PASSED",
+  "admin": true,
+  "frozen": true,
+  "source_disk_reads": 0,
+  "source_disk_writes": 0,
+  "resume_verified": true,
+  "unique_requests": 2,
+  "verified_bytes": 2097152,
+  "photo_bytes_equal": true,
+  "photo_preview": true,
+  "video_position_start_ms": 0,
+  "video_position_after_ms": 1267,
+  "video_playback": true
+}

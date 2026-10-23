@@ -4,6 +4,6 @@
   "result": "PASSED",
   "seconds": 16.337,
   "physical_disk_tested": false,
-  "exact_image_paths_exe_runtime": "NOT_YET_RUN",
+  "exact_image_paths_exe_runtime": "PASSED_SYNTHETIC_ACCEPTANCE",
   "official_tools_offline_installer": "PASSED"
 }

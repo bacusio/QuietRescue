@@ -20,3 +20,8 @@ EXE SHA-256: `01388f699ba99acf0796575d8b830d6b38da4e95d99ee556c44dc1ff7e0eb9b5`.
 - No recovered personal files, disk identities, maps or private logs are included in this repository/package.
 
 Large recovered movies require complete saved coverage across chunks. A standalone 1GB chunk is not necessarily a standalone movie. Full available-stream decoding does not prove original filename or original file completeness.
+
+
+## Subsequent exact-binary acceptance
+
+The published image-paths EXE (unchanged SHA-256) has now passed elevated synthetic runtime acceptance: admin/frozen true, two unique checkpoint requests, 2,097,152 verified bytes, byte-identical photo with preview, and video playback advanced from 0 to 1267 ms. No physical-source reads or writes. This supersedes the pending exact-binary acceptance note above and inside the already-published ZIP; it does not validate physical-fault behavior or every GUI control. See validation-image-paths-exe.json.

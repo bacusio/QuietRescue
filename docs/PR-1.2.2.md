@@ -17,3 +17,8 @@
 GitHub prerelease `v1.2.2-rc.1` 提供 Windows x64 核心 ZIP 與 SHA256SUMS。解壓後執行 `powershell -File .\Install-OfficialTools.ps1` 安裝官方依賴，再啟動 QuietRescue.exe。
 
 此 PR 從 main 整合既有 1.2 安全修正及後續功能，與未合併 PR #1 有重疊；沒有自動合併或關閉其他 PR。
+
+
+## Subsequent exact-binary acceptance
+
+The published image-paths EXE (unchanged SHA-256) has now passed elevated synthetic runtime acceptance: admin/frozen true, two unique checkpoint requests, 2,097,152 verified bytes, byte-identical photo with preview, and video playback advanced from 0 to 1267 ms. No physical-source reads or writes. This supersedes the pending exact-binary acceptance note above and inside the already-published ZIP; it does not validate physical-fault behavior or every GUI control. See validation-image-paths-exe.json.
