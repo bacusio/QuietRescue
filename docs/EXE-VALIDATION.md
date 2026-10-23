@@ -1,4 +1,6 @@
-# Windows EXE acceptance — 2026-10-21
+# Historical Windows EXE acceptance — 2026-10-21
+
+This report and its EXE hash document the earlier 1.1.0 artifact only. They are **not validation evidence for the current 1.2.1 source or EXE**. Version 1.2.1 restores the read-only physical reader behind explicit plan approval, but this build has not been tested on physical media or through interactive UI/UAC acceptance.
 
 | Check | Observed result |
 |---|---|
