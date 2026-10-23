@@ -1,18 +1,9 @@
 {
-  "status": "PASSED",
-  "admin": true,
-  "frozen": true,
-  "source_disk_reads": 0,
-  "source_disk_writes": 0,
-  "resume_verified": true,
-  "unique_requests": 2,
-  "verified_bytes": 2097152,
-  "photo_bytes_equal": true,
-  "photo_preview": true,
-  "video_position_start_ms": 0,
-  "video_position_after_ms": 1267,
-  "video_playback": true,
-  "exe_sha256": "f552a211e214702db9fc8e880f86b2e80c32a0c0ef3beac66b549930adbc7d0f",
-  "architecture": "Windows x64",
-  "source_tests_passed": 8
+  "version": "1.2.2",
+  "source_tests": 98,
+  "result": "PASSED",
+  "seconds": 16.337,
+  "physical_disk_tested": false,
+  "exact_image_paths_exe_runtime": "NOT_YET_RUN",
+  "official_tools_offline_installer": "PASSED"
 }

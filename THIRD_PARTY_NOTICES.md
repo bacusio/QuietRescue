@@ -8,6 +8,6 @@ The Python runtime also includes OpenSSL 3.5.8; its Apache 2.0 license is retain
 
 PyInstaller 6.22.3 supplies the bootloader under GPL with a distribution exception; its notice is retained. The exception permits distributing the application under its own license. See https://pyinstaller.org/en/stable/license.html .
 
-PhotoRec/TestDisk is NOT bundled. Download separately from https://www.cgsecurity.org/wiki/TestDisk_Download and retain upstream GPL notices. Any future binary redistribution must satisfy upstream license and corresponding-source requirements. The MIT project license does not relicense PhotoRec.
+Public packages do not redistribute PhotoRec/TestDisk or their dependent DLLs. Install-OfficialTools.ps1 downloads the pinned official 7.2 archive directly from CGSecurity and preserves its notices. These external tools have their own licenses and are not relicensed under QuietRescue MIT. Official distribution and source: https://www.cgsecurity.org/wiki/TestDisk_Download .
 
 The synthetic JPEG and AVI are project-generated demo media. FFmpeg was used only to produce the synthetic AVI and is not distributed or needed at runtime.

@@ -2,12 +2,12 @@
 import io,hashlib,shutil
 from pathlib import Path
 from PIL import Image
-from engine import good_blocks,FLOOR,save,records,merge
+from engine import good_blocks,FLOOR,save,records,merge,load,validate_saved_output
 from jpeg_parser import jpeg_length
 Image.MAX_IMAGE_PIXELS=80_000_000
 
 def recover_photos(root):
-    root=Path(root);out=root/'photos';out.mkdir(exist_ok=True)
+    root=Path(root).resolve();validate_saved_output(load(root/'plan.json'),root);out=root/'photos';out.mkdir(exist_ok=True)
     buffer=b'';start=0;end=None;found=[];seen=set()
     for row,data in good_blocks(root):
         if end!=row['offset']:buffer=b'';start=row['offset']
@@ -43,11 +43,28 @@ def recover_photos(root):
     save(root/'photo-recovery.json',dict(files=found,source_reads=0,original_names_available=False));return found
 
 def avoidance(root):
-    root=Path(root);guards=[(x['start'],x['end']) for x in records(root) if x['state']=='GUARD']
-    ranges=merge(guards)
+    root=Path(root).resolve();plan=load(root/'plan.json');validate_saved_output(plan,root)
+    classified=[]
+    labels={'FAILED':'OBSERVED_READ_ERROR_NOT_PROVEN_PHYSICAL_BAD',
+        'REQUESTED':'UNCONFIRMED_REQUEST_DO_NOT_RETRY',
+        'UNCONFIRMED':'UNCONFIRMED_REQUEST_DO_NOT_RETRY',
+        'GUARD':'POLICY_GUARD_NOT_PROVEN_BAD'}
+    for row in records(root):
+        state=row.get('state')
+        if state in labels and 'offset' in row:
+            a=int(row['offset']);z=a+int(row['length'])
+            classified.append((a,z,labels[state]))
+        elif state=='GUARD':classified.append((int(row['start']),int(row['end']),labels[state]))
+    for a,z in plan.get('guards',[]):classified.append((int(a),int(z),'IMPORTED_POLICY_GUARD_NOT_PROVEN_BAD'))
+    for a,z in plan.get('attempted',[]):classified.append((int(a),int(z),'PREVIOUSLY_ATTEMPTED_NOT_PROVEN_BAD'))
+    # Preserve evidence classes; only merge overlapping intervals of the same class.
+    groups={}
+    for a,z,label in classified:
+        if a<z:groups.setdefault(label,[]).append((a,z))
+    compact=[(a,z,label) for label,ranges in groups.items() for a,z in merge(ranges)]
     import csv
     path=root/'avoidance.csv'
     with path.open('w',newline='',encoding='utf-8-sig') as f:
         w=csv.writer(f);w.writerow(['start_byte','end_exclusive_byte','classification'])
-        for a,z in ranges:w.writerow([a,z,'DO_NOT_ALLOCATE_PROPOSAL_NOT_PROVEN_BAD_EXTENT'])
+        for a,z,label in sorted(compact):w.writerow([a,z,label])
     return path

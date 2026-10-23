@@ -1,25 +1,43 @@
-# QuietRescue 1.1 — Windows 免安裝 EXE
+> Latest: QuietRescue 1.2.2 prerelease. See [release notes and package setup](docs/RELEASE-1.2.2.md). The notes below may describe earlier versions.
 
-[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)
+# QuietRescue 1.2.2 — Windows x64
 
-下載 Windows-x64 ZIP，完整解壓到本機資料夾，雙擊 **QuietRescue.exe** 並允許正常的 Windows UAC。使用者不需要安裝 Python、pip 或 Tk。開啟程式不會自動掃描硬碟。
-<img width="1037" height="780" alt="螢幕擷取畫面 2026-10-21 222915" src="https://github.com/user-attachments/assets/5628df38-a787-4098-b120-52264aba9aa4" />
-<img width="1057" height="769" alt="螢幕擷取畫面 2026-10-21 223012" src="https://github.com/user-attachments/assets/083a8c25-3811-4a12-baf1-9b1131460eb1" />
-<img width="752" height="474" alt="螢幕擷取畫面 2026-10-21 223702" src="https://github.com/user-attachments/assets/0f2e4e68-d070-4e06-a4cb-11d78741d0c3" />
-<img width="497" height="54" alt="image" src="https://github.com/user-attachments/assets/a60cd780-4c05-48fd-a3af-6e456e7b1de7" />
+本版新增已保存鏡像的 TestDisk 舊分區分析、PhotoRec 提取與斷點續作、跨任務 MKV 拼接驗證，以及依 MFT 記錄還原原檔名。這些功能只使用你選定的保存副本；缺少資料範圍時不以零值補齊並宣稱成功。
 
+目前可用功能與限制：
 
-在還原頁點「開啟示範（不讀硬碟）」，即可預覽內附人工照片與AVI影片。支援的編碼可內嵌播放、暫停與重播；不支援的格式可交給系統播放器。編碼支援取決於Windows，示範檔不是使用者救回的資料。
+- **TestDisk**：只讀分析鏡像，支援中文來源路徑的已校驗暫存副本；結果相對於鏡像，不可直接當成實體盤分區表寫回。
+- **PhotoRec**：明確傳入保存鏡像、持有只讀鎖。斷點續作先校驗完整暫存鏡像及最新 session；沒有有效斷點不會偷偷重新掃描。保留至少 6GB 提取空間。
+- **跨任務 MKV**：使用既有位址映射與 SHA-256 校驗，只有保存範圍覆蓋檔案才可拼接。可選完整可用串流解碼；它仍不證明原片尾完整或原檔名。
+- **MFT 原名還原**：需要已保存記錄及明確的分區幾何資訊；不支援的壓縮、稀疏或缺失範圍不會假裝還原成功。真實舊檔名候選尚未取得新的內容驗證成功案例。
 
-功能包含有限範圍只讀鏡像、REQUESTED/GOOD持久映射、續讀跳過未確認請求、SHA-256驗證、JPEG/PNG提取與預覽、內嵌影片預覽、已驗證映像匯出及保守避讓CSV。首次新增讀取異常即停，保留超過5GB空間。不自動寫分區表或修復物理壞道。CHKDSK /f是另行確認的來源寫入功能，須有完整已驗證物理硬碟備份。
+早前能取得大型影片，並不代表每個後續 1GB 鏡像段都是獨立影片。分段可能切在檔案中間，或跨越缺失範圍；現在的跨任務功能處理的是「已保存且連續完整覆蓋」的情況，不能重建未讀到或被覆寫的內容。
 
-EXE目前未簽署，Windows可能顯示未知發行者或信譽提示；UAC的python請求用於硬碟存取。本工具仍是資料搶救原型，配合AI使用效率更高，目前不能修復物理盤體。PhotoRec維持選配，請從官方下載後放到EXE旁的vendor/testdisk-7.2/photorec_win.exe。
+本版恢復 1.1 已有的唯讀實體磁碟讀取路徑，並保留 1.2 的計劃審核、跳過地圖、斷點校驗和進度色帶。讀盤仍須使用者先檢視並批准明確計劃；僅開啟程式不會掃描磁碟。本版源碼測試使用合成資料，尚未在故障實體硬碟上驗收 reader 或 I/O 取消行為。
+
+鏡像頁可載入 `disk-rescue-progress/v1` JSON。每五秒同步已保存、已回報、未確認、故障、跳過、未知及避讓草案區域；藍色游標會同步起點 bytes。只有來源序號和容量完全相符才會套用映射。色帶只讀進度 JSON，不會啟動硬碟讀取。
+
+## 讀取與安全
+
+- 實體任務先建立草案。使用者檢視來源／目的身份、byte 範圍、每批與累計上限、匯入避讓範圍及不重試政策後，明確批准該計劃；批准綁定完整計劃 SHA-256。計劃、設備身份或跳過地圖改變時必須重新審核。
+- 實體來源以唯讀方式開啟。程式每次請求 1 MiB，首次錯誤、8 秒超時或超過 2 秒的慢讀即停止；程式不重試。作業系統或裝置韌體內部的重試不受程式控制。
+- 來源斷線、CRC、超時／結果未確認、權限問題及目的端寫入失敗分別記錄。它們不等同於已精確量出的物理壞道。
+- 保留來源序號互斥鎖、歷史請求排除、目的盤空間保留、journal 與分段 SHA-256 驗證。停止請求要等目前 I/O 和映射安全落盤後才算完成。
+- 本工具不提供壞道寫入修復、格式化或分區表寫回。避讓分區輸出僅為草案，候選區域不代表已證實健康。
+
+## 操作與限制
+
+1. 解壓 Windows x64 ZIP，啟動 `QuietRescue.exe` 並依 Windows UAC 提示操作；不需要安裝 Python。刷新磁碟清單，以型號、序號和容量確認來源，選另一塊健康實體硬碟作目的地。
+2. 建立未審核計劃草案，仔細核對來源、目的地、byte 範圍、既有跳過地圖、每批限制及保留空間，再按「檢視並批准計劃」。只有批准後按「開始／續讀」才會讀取。
+3. 保留整個任務資料夾，包括計劃、批准、`map.jsonl`、資料分段與驗證報告。所有曾提出的 REQUESTED 範圍（含結果未確認者）都會跳過，不可刪除紀錄強迫重讀。
+4. 先驗證已保存副本，再選擇照片抽取、PhotoRec、跨任務 MKV 或 MFT 原名還原。PhotoRec 通常不能保留原名；MFT 模式必須另有可信的記錄與資料映射。不要僅因抽出少量照片，就刪除整份鏡像。
+5. 影片完整性需檢查全片時長、跳轉與音訊。辨認出檔頭或工具正常退出都不代表檔案完整。
+
+2026-10-24 已通過 98 項源碼回歸測試；resume255 封裝版通過管理員合成驗收（斷點、照片及影片播放）。實際 PhotoRec 進程中斷後，已用其真正 session 成功續作並還原位元組一致的合成照片。最新 image-paths 封裝已檢查內容，但其獨立執行檔的管理員驗收尚未完成，不能沿用上一個封裝的結果。未驗收故障盤 USB I/O 取消、斷電或所有 GUI 操作；工具不能修復物理損壞，也不能保證恢復覆寫或不可讀資料。
 
 - [使用說明](docs/USAGE.zh-TW.md)
-- [功能比較](docs/COMPARISON.zh-TW.md)
-- [EXE validation / EXE驗證 / EXE検証](docs/EXE-VALIDATION.md)
-- [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+- [實作與驗收狀態](docs/IMPLEMENTATION-STATUS.zh-TW.md)
+- [建置說明](docs/BUILD.md)
+- [MIT 授權](LICENSE) · [第三方聲明](THIRD_PARTY_NOTICES.md)
 
-UI: 繁體中文 / Traditional Chinese. Windows x64.
-
-[Build from source / 從原始碼建置 / ソースからビルド](docs/BUILD.md)
+介面語言：繁體中文。Windows x64。
